@@ -89,7 +89,9 @@ def detect_suspicious_output(
         assert callable(completion_fn), "completion_fn must be callable `CompletionFn`"
         response = completion_fn(messages)
         completions = response.get_completions()
-        assert len(completions) == 1, f"expected exactly one completion, got {completions}"
+        assert (
+            len(completions) == 1
+        ), f"expected exactly one completion, got {completions}"
         text = completions[0]
 
         valid = validation_fn(text)

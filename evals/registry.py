@@ -3,6 +3,7 @@ Functions to handle registration of evals. To add a new eval to the registry,
 add an entry in one of the YAML files in the `../registry` dir.
 By convention, every eval name should start with {base_eval}.{split}.
 """
+
 import copy
 import difflib
 import functools
@@ -11,7 +12,17 @@ import os
 import re
 from functools import cached_property
 from pathlib import Path
-from typing import Any, Generator, Iterator, Optional, Sequence, Tuple, Type, TypeVar, Union
+from typing import (
+    Any,
+    Generator,
+    Iterator,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+)
 
 import openai
 import yaml
@@ -89,7 +100,7 @@ def is_chat_model(model_name: str) -> bool:
     if model_name in CHAT_MODEL_NAMES:
         return True
 
-    for model_prefix in {"gpt-3.5-turbo-", "gpt-4-"}:
+    for model_prefix in {"gpt-3.5-turbo-", "gpt-4-", "gpt-4"}:
         if model_name.startswith(model_prefix):
             return True
 
@@ -102,10 +113,14 @@ RawRegistry = dict[str, Any]
 
 class Registry:
     def __init__(self, registry_paths: Sequence[Union[str, Path]] = DEFAULT_PATHS):
-        self._registry_paths = [Path(p) if isinstance(p, str) else p for p in registry_paths]
+        self._registry_paths = [
+            Path(p) if isinstance(p, str) else p for p in registry_paths
+        ]
 
     def add_registry_paths(self, paths: Sequence[Union[str, Path]]) -> None:
-        self._registry_paths.extend([Path(p) if isinstance(p, str) else p for p in paths])
+        self._registry_paths.extend(
+            [Path(p) if isinstance(p, str) else p for p in paths]
+        )
 
     @cached_property
     def api_model_ids(self) -> list[str]:
@@ -140,7 +155,9 @@ class Registry:
         # No match, so try to find a completion-fn-id in the registry
         spec = self.get_completion_fn(name) or self.get_solver(name)
         if spec is None:
-            raise ValueError(f"Could not find CompletionFn/Solver in the registry with ID {name}")
+            raise ValueError(
+                f"Could not find CompletionFn/Solver in the registry with ID {name}"
+            )
         if spec.args is None:
             spec.args = {}
         spec.args.update(kwargs)
@@ -190,7 +207,9 @@ class Registry:
         except TypeError as e:
             raise TypeError(f"Error while processing {object} '{name}': {e}")
 
-    def get_modelgraded_spec(self, name: str, **kwargs: dict) -> Optional[ModelGradedSpec]:
+    def get_modelgraded_spec(
+        self, name: str, **kwargs: dict
+    ) -> Optional[ModelGradedSpec]:
         assert name in self._modelgraded_specs, (
             f"Modelgraded spec {name} not found. "
             f"Closest matches: {difflib.get_close_matches(name, self._modelgraded_specs.keys(), n=5)}"
@@ -201,7 +220,10 @@ class Registry:
 
     def get_completion_fn(self, name: str) -> Optional[CompletionFnSpec]:
         return self._dereference(
-            name, self._completion_fns | self._solvers, "completion_fn", CompletionFnSpec
+            name,
+            self._completion_fns | self._solvers,
+            "completion_fn",
+            CompletionFnSpec,
         )
 
     def get_solver(self, name: str) -> Optional[CompletionFnSpec]:
@@ -259,7 +281,9 @@ class Registry:
         for name, spec in d.items():
             yield name, path, spec
 
-    def _load_directory(self, path: Path) -> Generator[Tuple[str, Path, dict], None, None]:
+    def _load_directory(
+        self, path: Path
+    ) -> Generator[Tuple[str, Path, dict], None, None]:
         files = Path(path).glob("*.yaml")
         for file in files:
             yield from self._load_file(file)
@@ -284,7 +308,9 @@ class Registry:
                     f"{reserved_keyword} is a reserved keyword, but was used in {name} from {path}"
                 )
 
-    def _load_registry(self, registry_paths: Sequence[Path], resource_type: str) -> RawRegistry:
+    def _load_registry(
+        self, registry_paths: Sequence[Path], resource_type: str
+    ) -> RawRegistry:
         """Load registry from a list of regstry paths and a specific resource type
 
         Each path includes yaml files which are a dictionary of name -> spec.

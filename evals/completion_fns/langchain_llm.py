@@ -66,13 +66,17 @@ def _convert_dict_to_langchain_message(_dict) -> BaseMessage:
 
 
 class LangChainChatModelCompletionFn(CompletionFn):
-    def __init__(self, llm: str, chat_model_kwargs: Optional[dict] = None, **kwargs) -> None:
+    def __init__(
+        self, llm: str, chat_model_kwargs: Optional[dict] = None, **kwargs
+    ) -> None:
         # Import and resolve self.llm to an instance of llm argument here,
         # assuming it's always a subclass of BaseLLM
         if chat_model_kwargs is None:
             chat_model_kwargs = {}
         module = importlib.import_module("langchain.chat_models")
         LLMClass = getattr(module, llm)
+
+        self.llm_str = llm
 
         if issubclass(LLMClass, BaseChatModel):
             self.llm = LLMClass(**chat_model_kwargs)
@@ -81,7 +85,11 @@ class LangChainChatModelCompletionFn(CompletionFn):
 
     def __call__(self, prompt, **kwargs) -> LangChainLLMCompletionResult:
         if is_chat_prompt(prompt):
-            messages = [_convert_dict_to_langchain_message(message) for message in prompt]
+            messages = [
+                _convert_dict_to_langchain_message(message) for message in prompt
+            ]
+            if self.llm_str == "ChatAnthropic":
+                messages.append(HumanMessage(content=" "))
         else:
             messages = [HumanMessage(content=prompt)]
         response = self.llm(messages).content

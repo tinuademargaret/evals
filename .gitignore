@@ -3,6 +3,7 @@ evals.egg-info/
 
 .venv/
 venv/
+.python-version
 
 # MacOS folder metadata
 .DS_Store
