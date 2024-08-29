@@ -73,7 +73,7 @@ class LangChainChatModelCompletionFn(CompletionFn):
         # assuming it's always a subclass of BaseLLM
         if chat_model_kwargs is None:
             chat_model_kwargs = {}
-        module = importlib.import_module("langchain.chat_models")
+        module = importlib.import_module("langchain_community.chat_models")
         LLMClass = getattr(module, llm)
 
         self.llm_str = llm
