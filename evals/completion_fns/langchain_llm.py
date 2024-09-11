@@ -12,6 +12,8 @@ from langchain.schema.messages import (
     SystemMessage,
 )
 
+from langchain.chat_models import init_chat_model
+
 from evals.api import CompletionFn, CompletionResult
 from evals.prompt.base import CompletionPrompt, is_chat_prompt
 from evals.record import record_sampling
@@ -73,7 +75,14 @@ class LangChainChatModelCompletionFn(CompletionFn):
         # assuming it's always a subclass of BaseLLM
         if chat_model_kwargs is None:
             chat_model_kwargs = {}
-        module = importlib.import_module("langchain_community.chat_models")
+        if llm == "ChatAnthropic":
+            module = importlib.import_module("langchain_anthropic.chat_models")
+        elif llm == "ChatMistralAI":
+            module = importlib.import_module("langchain_mistralai.chat_models")
+        elif llm == "ChatGoogleGenerativeAI":
+            module = importlib.import_module("langchain_google_genai.chat_models")
+        else:
+            module = importlib.import_module("langchain_community.chat_models")
         LLMClass = getattr(module, llm)
 
         self.llm_str = llm
@@ -89,7 +98,35 @@ class LangChainChatModelCompletionFn(CompletionFn):
                 _convert_dict_to_langchain_message(message) for message in prompt
             ]
             if self.llm_str == "ChatAnthropic":
-                messages.append(HumanMessage(content=" "))
+                messages.append(HumanMessage(content="---"))
+        else:
+            messages = [HumanMessage(content=prompt)]
+        try:
+            response = self.llm(messages).content
+            record_sampling(prompt=prompt, sampled=response)
+            return LangChainLLMCompletionResult(response)
+        except:
+            response = "internal server error"
+            record_sampling(prompt=prompt, sampled=response)
+            return LangChainLLMCompletionResult(response)
+
+
+class LangChainAnyChatModelCompletionFn(CompletionFn):
+    def __init__(
+        self, llm: str, chat_model_kwargs: Optional[dict] = None, **kwargs
+    ) -> None:
+        # Import and resolve self.llm to an instance of llm argument here,
+        # assuming it's always a subclass of BaseLLM
+        if chat_model_kwargs is None:
+            chat_model_kwargs = {}
+
+        self.llm = init_chat_model(llm, **chat_model_kwargs)
+
+    def __call__(self, prompt, **kwargs) -> LangChainLLMCompletionResult:
+        if is_chat_prompt(prompt):
+            messages = [
+                _convert_dict_to_langchain_message(message) for message in prompt
+            ]
         else:
             messages = [HumanMessage(content=prompt)]
         response = self.llm(messages).content

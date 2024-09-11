@@ -31,7 +31,7 @@ langchain/chat_model/claude-3-5-sonnet:
   args:
     llm: ChatAnthropic
     chat_model_kwargs:
-      model_name: claude-3-5-sonnet-20240620
+      model: claude-3-5-sonnet-20240620
 
 langchain/chat_model/llama3-1: 
   class: evals.completion_fns.langchain_llm:LangChainChatModelCompletionFn
@@ -39,3 +39,27 @@ langchain/chat_model/llama3-1:
     llm: ChatOllama
     chat_model_kwargs:
       model: llama3.1:latest
+
+langchain/chat_model/googleai:
+  class: evals.completion_fns.langchain_llm:LangChainChatModelCompletionFn
+  args:
+    llm: ChatGoogleGenerativeAI
+    chat_model_kwargs:
+      model: gemini-1.5-pro
+      temperature: 0.7
+
+langchain/chat_model/groq:
+  class: evals.completion_fns.langchain_llm:LangChainAnyChatModelCompletionFn
+  args:
+    llm: mixtral-8x7b-32768
+    chat_model_kwargs:
+      model_provider: groq
+      temperature: 0.7
+
+langchain/chat_model/mistral:
+  class: evals.completion_fns.langchain_llm:LangChainChatModelCompletionFn
+  args:
+    llm: ChatMistralAI
+    chat_model_kwargs:
+      model_provider: mistral-large-latest
+      temperature: 0.7

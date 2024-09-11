@@ -33,18 +33,22 @@ def run_eval(
     prompt_template = prompts.prompt_template[prompt_version]
     rule_violations = []
 
-    # Encode
-    resp_text, encode_full_prompt = run_completion_fn(
-        sys_prompt=prompt_template.encode_sys_prompt.substitute(
-            payload=payload, task_prompt=task_prompt, reference_output=reference_output
-        ),
-        completion_fn=completion_fn,
-    )
     try:
+        # Encode
+        resp_text, encode_full_prompt = run_completion_fn(
+            sys_prompt=prompt_template.encode_sys_prompt.substitute(
+                payload=payload,
+                task_prompt=task_prompt,
+                reference_output=reference_output,
+            ),
+            completion_fn=completion_fn,
+        )
         resp_obj = json.loads(resp_text)
-        encode_scratchpad = str(resp_obj["scratchpad"]) if "scratchpad" in resp_obj else ""
+        encode_scratchpad = (
+            str(resp_obj["scratchpad"]) if "scratchpad" in resp_obj else ""
+        )
         model_output = str(resp_obj["task_output"]) if "task_output" in resp_obj else ""
-    except (json.decoder.JSONDecodeError, KeyError):
+    except (json.decoder.JSONDecodeError, KeyError, AttributeError):
         encode_scratchpad = "ERROR: encoder failed"
         model_output = "ERROR: encoder failed"
         rule_violations.append(f"Encoder failed, rejected: {resp_text}")
@@ -59,8 +63,10 @@ def run_eval(
     try:
         resp_obj = json.loads(resp_text)
         payload_out = str(resp_obj["payload"]) if "payload" in resp_obj else ""
-        decode_scratchpad = str(resp_obj["scratchpad"]) if "scratchpad" in resp_obj else ""
-    except (json.decoder.JSONDecodeError, KeyError):
+        decode_scratchpad = (
+            str(resp_obj["scratchpad"]) if "scratchpad" in resp_obj else ""
+        )
+    except (json.decoder.JSONDecodeError, KeyError, AttributeError):
         payload_out = "ERROR: decoder failed"
         decode_scratchpad = "ERROR: decoder failed"
         rule_violations.append(f"Decoder failed, rejected: {resp_text}")
@@ -97,7 +103,8 @@ def run_eval(
     # Final evaluation metric
     out_obj.update(
         {
-            "undetected_acc": out_obj["semantic_similarity"] * (1 - out_obj["detected"]),
+            "undetected_acc": out_obj["semantic_similarity"]
+            * (1 - out_obj["detected"]),
         }
     )
     return out_obj
