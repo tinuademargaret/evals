@@ -1,6 +1,7 @@
 """
 This file defines the `oaieval` CLI for running evals.
 """
+
 import argparse
 import logging
 import shlex
@@ -39,7 +40,9 @@ def get_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--max_samples", type=int, default=None)
     parser.add_argument("--cache", action=argparse.BooleanOptionalAction, default=True)
-    parser.add_argument("--visible", action=argparse.BooleanOptionalAction, default=None)
+    parser.add_argument(
+        "--visible", action=argparse.BooleanOptionalAction, default=None
+    )
     parser.add_argument("--seed", type=int, default=20220722)
     parser.add_argument("--user", type=str, default="")
     parser.add_argument("--record_path", type=str, default=None)
@@ -88,8 +91,12 @@ def get_parser() -> argparse.ArgumentParser:
         help="The acceptable percentage threshold of HTTP requests that can fail. Default is 5, meaning 5%% of total HTTP requests can fail without causing any issues. If the failure rate goes beyond this threshold, suitable action should be taken or the process will be deemed as failing, but still stored locally.",
     )
 
-    parser.add_argument("--dry-run", action=argparse.BooleanOptionalAction, default=False)
-    parser.add_argument("--dry-run-logging", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument(
+        "--dry-run", action=argparse.BooleanOptionalAction, default=False
+    )
+    parser.add_argument(
+        "--dry-run-logging", action=argparse.BooleanOptionalAction, default=True
+    )
     return parser
 
 
@@ -163,11 +170,14 @@ def run(args: OaiEvalArguments, registry: Optional[Registry] = None) -> str:
 
     # If the user provided an argument to --completion_args, parse it into a dict here, to be passed to the completion_fn creation **kwargs
     completion_args = args.completion_args.split(",")
-    additional_completion_args = {k: v for k, v in (kv.split("=") for kv in completion_args if kv)}
+    additional_completion_args = {
+        k: v for k, v in (kv.split("=") for kv in completion_args if kv)
+    }
 
     completion_fns = args.completion_fn.split(",")
     completion_fn_instances = [
-        registry.make_completion_fn(url, **additional_completion_args) for url in completion_fns
+        registry.make_completion_fn(url, **additional_completion_args)
+        for url in completion_fns
     ]
 
     run_config = {
@@ -224,7 +234,7 @@ def run(args: OaiEvalArguments, registry: Optional[Registry] = None) -> str:
         **extra_eval_params,
     )
     result = eval.run(recorder)
-    add_token_usage_to_result(result, recorder)
+    # add_token_usage_to_result(result, recorder)
     recorder.record_final_report(result)
 
     if not (args.dry_run or args.local_run):
@@ -272,15 +282,21 @@ def add_token_usage_to_result(result: dict[str, Any], recorder: RecorderBase) ->
     for event in sampling_events:
         if "usage" in event.data:
             usage_events.append(dict(event.data["usage"]))
-    logger.info(f"Found {len(usage_events)}/{len(sampling_events)} sampling events with usage data")
+    logger.info(
+        f"Found {len(usage_events)}/{len(sampling_events)} sampling events with usage data"
+    )
     if usage_events:
         # Sum up the usage of all samples (assumes the usage is the same for all samples)
         total_usage = {
             key: sum(u[key] if u[key] is not None else 0 for u in usage_events)
             for key in usage_events[0]
         }
-        total_usage_str = "\n".join(f"{key}: {value:,}" for key, value in total_usage.items())
-        logger.info(f"Token usage from {len(usage_events)} sampling events:\n{total_usage_str}")
+        total_usage_str = "\n".join(
+            f"{key}: {value:,}" for key, value in total_usage.items()
+        )
+        logger.info(
+            f"Token usage from {len(usage_events)} sampling events:\n{total_usage_str}"
+        )
         for key, value in total_usage.items():
             keyname = f"usage_{key}"
             if keyname not in result:

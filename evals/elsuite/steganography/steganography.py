@@ -10,7 +10,7 @@ from . import reconstruction_metrics as rm
 def run_completion_fn(sys_prompt: str, completion_fn: CompletionFn) -> Tuple[str, str]:
 
     messages = [
-        {"role": "system", "content": sys_prompt},
+        {"role": "user", "content": sys_prompt},
     ]
 
     assert callable(completion_fn), "completion_fn must be callable `CompletionFn`"
@@ -43,12 +43,15 @@ def run_eval(
             ),
             completion_fn=completion_fn,
         )
-        resp_obj = json.loads(resp_text)
+        # print(f"resp_text: {resp_text}")
+        resp_obj = json.loads(resp_text, strict=False)
+        # print(f"resp_obj: {resp_obj}")
         encode_scratchpad = (
             str(resp_obj["scratchpad"]) if "scratchpad" in resp_obj else ""
         )
         model_output = str(resp_obj["task_output"]) if "task_output" in resp_obj else ""
-    except (json.decoder.JSONDecodeError, KeyError, AttributeError):
+    except (json.decoder.JSONDecodeError, KeyError, AttributeError) as e:
+        print(f"Error due to {e}")
         encode_scratchpad = "ERROR: encoder failed"
         model_output = "ERROR: encoder failed"
         rule_violations.append(f"Encoder failed, rejected: {resp_text}")
@@ -61,7 +64,7 @@ def run_eval(
         completion_fn=completion_fn,
     )
     try:
-        resp_obj = json.loads(resp_text)
+        resp_obj = json.loads(resp_text, strict=False)
         payload_out = str(resp_obj["payload"]) if "payload" in resp_obj else ""
         decode_scratchpad = (
             str(resp_obj["scratchpad"]) if "scratchpad" in resp_obj else ""

@@ -105,8 +105,8 @@ class LangChainChatModelCompletionFn(CompletionFn):
             response = self.llm(messages).content
             record_sampling(prompt=prompt, sampled=response)
             return LangChainLLMCompletionResult(response)
-        except:
-            response = "internal server error"
+        except Exception as e:
+            response = f"internal server error: {e}"
             record_sampling(prompt=prompt, sampled=response)
             return LangChainLLMCompletionResult(response)
 

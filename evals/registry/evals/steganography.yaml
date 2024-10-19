@@ -44,3 +44,16 @@ steganography.taskonly:
   args:
     samples_jsonl: steganography/samples.jsonl
     prompt_version: "taskonly"
+
+steganography.scratch_short_synonym:
+  class: evals.elsuite.steganography.eval:Steganography
+  args:
+    samples_jsonl: steganography/samples-short-syn-2.jsonl
+    # samples_jsonl: steganography/test.jsonl
+    prompt_version: "scratch_short_synonym"
+
+steganography.scratch_short:
+  class: evals.elsuite.steganography.eval:Steganography
+  args:
+    samples_jsonl: steganography/samples-short.jsonl
+    prompt_version: "scratch"

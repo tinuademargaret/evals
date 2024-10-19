@@ -30,7 +30,10 @@ def openai_completion_create_retrying(client: OpenAI, *args, **kwargs):
     `args` and `kwargs` match what is accepted by `openai.Completion.create`.
     """
     result = create_retrying(
-        client.completions.create, retry_exceptions=OPENAI_TIMEOUT_EXCEPTIONS, *args, **kwargs
+        client.completions.create,
+        retry_exceptions=OPENAI_TIMEOUT_EXCEPTIONS,
+        *args,
+        **kwargs,
     )
     if "error" in result:
         logging.warning(result)
@@ -44,7 +47,10 @@ def openai_chat_completion_create_retrying(client: OpenAI, *args, **kwargs):
     `args` and `kwargs` match what is accepted by `openai.Completion.create`.
     """
     result = create_retrying(
-        client.chat.completions.create, retry_exceptions=OPENAI_TIMEOUT_EXCEPTIONS, *args, **kwargs
+        client.chat.completions.create,
+        retry_exceptions=OPENAI_TIMEOUT_EXCEPTIONS,
+        *args,
+        **kwargs,
     )
     if "error" in result:
         logging.warning(result)
@@ -104,9 +110,18 @@ class OpenAICompletionFn(CompletionFn):
         if not isinstance(prompt, Prompt):
             assert (
                 isinstance(prompt, str)
-                or (isinstance(prompt, list) and all(isinstance(token, int) for token in prompt))
-                or (isinstance(prompt, list) and all(isinstance(token, str) for token in prompt))
-                or (isinstance(prompt, list) and all(isinstance(msg, dict) for msg in prompt))
+                or (
+                    isinstance(prompt, list)
+                    and all(isinstance(token, int) for token in prompt)
+                )
+                or (
+                    isinstance(prompt, list)
+                    and all(isinstance(token, str) for token in prompt)
+                )
+                or (
+                    isinstance(prompt, list)
+                    and all(isinstance(msg, dict) for msg in prompt)
+                )
             ), f"Got type {type(prompt)}, with val {type(prompt[0])} for prompt, expected str or list[int] or list[str] or list[dict[str, str]]"
 
             prompt = CompletionPrompt(
@@ -154,9 +169,18 @@ class OpenAIChatCompletionFn(CompletionFnSpec):
         if not isinstance(prompt, Prompt):
             assert (
                 isinstance(prompt, str)
-                or (isinstance(prompt, list) and all(isinstance(token, int) for token in prompt))
-                or (isinstance(prompt, list) and all(isinstance(token, str) for token in prompt))
-                or (isinstance(prompt, list) and all(isinstance(msg, dict) for msg in prompt))
+                or (
+                    isinstance(prompt, list)
+                    and all(isinstance(token, int) for token in prompt)
+                )
+                or (
+                    isinstance(prompt, list)
+                    and all(isinstance(token, str) for token in prompt)
+                )
+                or (
+                    isinstance(prompt, list)
+                    and all(isinstance(msg, dict) for msg in prompt)
+                )
             ), f"Got type {type(prompt)}, with val {type(prompt[0])} for prompt, expected str or list[int] or list[str] or list[dict[str, str]]"
 
             prompt = ChatCompletionPrompt(
@@ -171,7 +195,9 @@ class OpenAIChatCompletionFn(CompletionFnSpec):
             messages=openai_create_prompt,
             **{**kwargs, **self.extra_options},
         )
-        result = OpenAIChatCompletionResult(raw_data=result, prompt=openai_create_prompt)
+        result = OpenAIChatCompletionResult(
+            raw_data=result, prompt=openai_create_prompt
+        )
         record_sampling(
             prompt=result.prompt,
             sampled=result.get_completions(),

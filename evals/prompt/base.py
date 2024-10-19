@@ -2,6 +2,7 @@
 This file defines the classes for how to manage prompts for different types of
 models, i.e., "chat models" vs. "non chat models".
 """
+
 import logging
 import threading
 from abc import ABC, abstractmethod
@@ -15,7 +16,9 @@ ENCODER_LOCK = threading.Lock()
 OpenAICreatePrompt = Union[str, list[str], list[int], list[list[int]]]
 
 # This is the type accepted as the `prompt` field to `openai.ChatCompletion.create` calls
-OpenAIChatMessage = Dict[str, str]  # A message is a dictionary with "role" and "content" keys
+OpenAIChatMessage = Dict[
+    str, str
+]  # A message is a dictionary with "role" and "content" keys
 OpenAICreateChatPrompt = List[OpenAIChatMessage]  # A chat log is a list of messages
 
 
@@ -56,7 +59,9 @@ def chat_prompt_to_text_prompt(
     return text.lstrip()
 
 
-def text_prompt_to_chat_prompt(prompt: str, role: str = "system") -> OpenAICreateChatPrompt:
+def text_prompt_to_chat_prompt(
+    prompt: str, role: str = "user"
+) -> OpenAICreateChatPrompt:
     assert isinstance(prompt, str), f"Expected a text prompt, got {prompt}"
     return [
         {"role": role, "content": prompt},
